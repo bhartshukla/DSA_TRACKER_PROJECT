@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DSA Tracker — XBZIN ECOSYSTEM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body class="dark-mode">
+
+<!-- Sidebar -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <span class="logo-icon">⚡</span>
+    <div>
+      <div class="logo-title">DSA Tracker</div>
+      <div class="logo-sub">XBZIN ECOSYSTEM</div>
+    </div>
+  </div>
+  <div class="sidebar-search">
+    <input type="text" id="globalSearch" placeholder="Search anything…" />
+    <span class="s-icon">🔍</span>
+  </div>
+  <ul class="nav-list">
+    <li class="nav-item active" data-section="dashboard"><span class="nav-icon">📊</span>Dashboard</li>
+    <li class="nav-item" data-section="daily"><span class="nav-icon">📅</span>Daily Tracker</li>
+    <li class="nav-item" data-section="topics"><span class="nav-icon">📚</span>Topics</li>
+    <li class="nav-item" data-section="problems"><span class="nav-icon">🧩</span>Problems</li>
+    <li class="nav-item" data-section="revision"><span class="nav-icon">🔄</span>Revision</li>
+    <li class="nav-item" data-section="goals"><span class="nav-icon">🎯</span>Goals</li>
+    <li class="nav-item" data-section="analytics"><span class="nav-icon">📈</span>Analytics</li>
+    <li class="nav-item" data-section="heatmap"><span class="nav-icon">🗓️</span>Heatmap</li>
+    <li class="nav-item" data-section="achievements"><span class="nav-icon">🏆</span>Achievements</li>
+    <li class="nav-item" data-section="notes"><span class="nav-icon">📝</span>Notes</li>
+    <li class="nav-item" data-section="sheets"><span class="nav-icon">📋</span>DSA Sheets</li>
+    <li class="nav-item" data-section="interview"><span class="nav-icon">💼</span>Interview</li>
+    <li class="nav-item" data-section="settings"><span class="nav-icon">⚙️</span>Settings</li>
+  </ul>
+  <div class="sidebar-footer">
+    <button class="btn-export" onclick="exportJSON()">⬇️ Backup</button>
+    <button class="btn-import" onclick="document.getElementById('importFile').click()">⬆️ Restore</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)" />
+  </div>
+</nav>
+
+<!-- Header -->
+<header class="main-header">
+  <button class="menu-toggle" id="menuToggle">☰</button>
+  <div class="header-title" id="headerTitle">Dashboard</div>
+  <div class="header-right">
+    <span class="streak-badge">🔥 <span id="headerStreak">0</span> days</span>
+    <button class="theme-toggle" id="themeToggle" title="Toggle Theme">🌙</button>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="main-content" id="mainContent">
+
+  <!-- ===== DASHBOARD ===== -->
+  <section class="section active" id="sec-dashboard">
+    <div class="section-header"><h2>Dashboard</h2><p>Your DSA journey at a glance</p></div>
+    <div class="stats-grid" id="statsGrid"></div>
+    <div class="dash-row">
+      <div class="glass-card recent-problems">
+        <h3>🕐 Recently Solved</h3>
+        <div id="recentProblems"></div>
+      </div>
+      <div class="glass-card upcoming-revisions-dash">
+        <h3>🔄 Upcoming Revisions</h3>
+        <div id="upcomingRevDash"></div>
+      </div>
+    </div>
+    <div class="dash-row">
+      <div class="glass-card">
+        <h3>📊 Weekly Overview</h3>
+        <canvas id="dashWeeklyChart" height="180"></canvas>
+      </div>
+      <div class="glass-card">
+        <h3>🎯 Difficulty Split</h3>
+        <canvas id="dashDiffChart" height="180"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== DAILY TRACKER ===== -->
+  <section class="section" id="sec-daily">
+    <div class="section-header"><h2>Daily Tracker</h2><p>Log your daily study sessions</p></div>
+    <div class="glass-card form-card">
+      <h3 id="dailyFormTitle">➕ Add Today's Entry</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="dailyDate" />
+        </div>
+        <div class="form-group">
+          <label>Study Hours</label>
+          <input type="number" id="dailyHours" min="0" max="24" step="0.5" placeholder="e.g. 2.5" />
+        </div>
+        <div class="form-group">
+          <label>Questions Solved</label>
+          <input type="number" id="dailyQuestions" min="0" placeholder="e.g. 5" />
+        </div>
+        <div class="form-group">
+          <label>Topics Studied</label>
+          <input type="text" id="dailyTopics" placeholder="Arrays, Trees…" />
+        </div>
+        <div class="form-group full-width">
+          <label>Notes</label>
+          <textarea id="dailyNotes" placeholder="What did you learn today?"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Mood</label>
+          <select id="dailyMood">
+            <option value="Excellent">😄 Excellent</option>
+            <option value="Good">🙂 Good</option>
+            <option value="Average">😐 Average</option>
+            <option value="Poor">😞 Poor</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-primary" onclick="saveDailyEntry()">Save Entry</button>
+        <button class="btn-secondary" onclick="clearDailyForm()">Clear</button>
+      </div>
+      <input type="hidden" id="dailyEditId" />
+    </div>
+    <div class="glass-card">
+      <div class="table-toolbar">
+        <input type="text" id="dailySearch" placeholder="Search entries…" oninput="renderDailyTable()" />
+        <input type="date" id="dailyFilterDate" onchange="renderDailyTable()" />
+      </div>
+      <div class="table-wrap" id="dailyTableWrap"></div>
+    </div>
+  </section>
+
+  <!-- ===== TOPICS ===== -->
+  <section class="section" id="sec-topics">
+    <div class="section-header"><h2>Topics Tracker</h2><p>Track your progress across DSA topics</p></div>
+    <div class="topics-grid" id="topicsGrid"></div>
+  </section>
+
+  <!-- ===== PROBLEMS ===== -->
+  <section class="section" id="sec-problems">
+    <div class="section-header"><h2>Problem Tracker</h2><p>Manage all your solved problems</p></div>
+    <div class="glass-card form-card">
+      <h3 id="probFormTitle">➕ Add Problem</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Problem Name</label>
+          <input type="text" id="probName" placeholder="Two Sum" />
+        </div>
+        <div class="form-group">
+          <label>Platform</label>
+          <select id="probPlatform">
+            <option>LeetCode</option><option>CodeChef</option><option>Codeforces</option>
+            <option>GeeksforGeeks</option><option>HackerRank</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Difficulty</label>
+          <select id="probDifficulty">
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Topic</label>
+          <select id="probTopic"></select>
+        </div>
+        <div class="form-group">
+          <label>Date Solved</label>
+          <input type="date" id="probDate" />
+        </div>
+        <div class="form-group">
+          <label>Problem Link</label>
+          <input type="url" id="probLink" placeholder="https://…" />
+        </div>
+        <div class="form-group full-width">
+          <label>Notes</label>
+          <textarea id="probNotes" placeholder="Approach, complexity…"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Revision Required</label>
+          <select id="probRevision">
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-primary" onclick="saveProblem()">Save Problem</button>
+        <button class="btn-secondary" onclick="clearProbForm()">Clear</button>
+      </div>
+      <input type="hidden" id="probEditId" />
+    </div>
+    <div class="glass-card">
+      <div class="table-toolbar">
+        <input type="text" id="probSearch" placeholder="Search problems…" oninput="renderProblemsTable()" />
+        <select id="probFilterDiff" onchange="renderProblemsTable()">
+          <option value="">All Difficulties</option>
+          <option>Easy</option><option>Medium</option><option>Hard</option>
+        </select>
+        <select id="probFilterTopic" onchange="renderProblemsTable()"></select>
+        <select id="probFilterPlatform" onchange="renderProblemsTable()">
+          <option value="">All Platforms</option>
+          <option>LeetCode</option><option>CodeChef</option><option>Codeforces</option>
+          <option>GeeksforGeeks</option><option>HackerRank</option><option>Other</option>
+        </select>
+        <button class="btn-secondary" onclick="exportCSV()">⬇️ CSV</button>
+      </div>
+      <div class="table-wrap" id="problemsTableWrap"></div>
+    </div>
+  </section>
+
+  <!-- ===== REVISION ===== -->
+  <section class="section" id="sec-revision">
+    <div class="section-header"><h2>Revision Tracker</h2><p>Spaced repetition for better retention</p></div>
+    <div class="revision-tabs">
+      <button class="rev-tab active" onclick="switchRevTab('overdue',this)">⚠️ Overdue</button>
+      <button class="rev-tab" onclick="switchRevTab('today',this)">📅 Today</button>
+      <button class="rev-tab" onclick="switchRevTab('upcoming',this)">🗓️ Upcoming</button>
+      <button class="rev-tab" onclick="switchRevTab('completed',this)">✅ Completed</button>
+    </div>
+    <div class="glass-card" id="revisionContent"></div>
+  </section>
+
+  <!-- ===== GOALS ===== -->
+  <section class="section" id="sec-goals">
+    <div class="section-header"><h2>Goal Management</h2><p>Set and track your study goals</p></div>
+    <div class="glass-card form-card">
+      <h3 id="goalFormTitle">➕ Add Goal</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Goal Title</label>
+          <input type="text" id="goalTitle" placeholder="Solve 5 problems" />
+        </div>
+        <div class="form-group">
+          <label>Type</label>
+          <select id="goalType">
+            <option value="Daily">Daily</option>
+            <option value="Weekly">Weekly</option>
+            <option value="Monthly">Monthly</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Target</label>
+          <input type="number" id="goalTarget" min="1" placeholder="e.g. 5" />
+        </div>
+        <div class="form-group">
+          <label>Current Progress</label>
+          <input type="number" id="goalCurrent" min="0" placeholder="0" />
+        </div>
+        <div class="form-group">
+          <label>Due Date</label>
+          <input type="date" id="goalDue" />
+        </div>
+        <div class="form-group full-width">
+          <label>Description</label>
+          <textarea id="goalDesc" placeholder="Goal details…"></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-primary" onclick="saveGoal()">Save Goal</button>
+        <button class="btn-secondary" onclick="clearGoalForm()">Clear</button>
+      </div>
+      <input type="hidden" id="goalEditId" />
+    </div>
+    <div class="goals-grid" id="goalsGrid"></div>
+  </section>
+
+  <!-- ===== ANALYTICS ===== -->
+  <section class="section" id="sec-analytics">
+    <div class="section-header"><h2>Analytics</h2><p>Detailed progress insights</p></div>
+    <div class="analytics-grid">
+      <div class="glass-card"><h3>📅 Daily Progress</h3><canvas id="dailyChart" height="200"></canvas></div>
+      <div class="glass-card"><h3>📆 Weekly Progress</h3><canvas id="weeklyChart" height="200"></canvas></div>
+      <div class="glass-card"><h3>🗓️ Monthly Progress</h3><canvas id="monthlyChart" height="200"></canvas></div>
+      <div class="glass-card"><h3>📚 Topic Progress</h3><canvas id="topicChart" height="200"></canvas></div>
+      <div class="glass-card"><h3>🎯 Difficulty Distribution</h3><canvas id="diffChart" height="200"></canvas></div>
+      <div class="glass-card"><h3>⏰ Study Hours</h3><canvas id="hoursChart" height="200"></canvas></div>
+    </div>
+  </section>
+
+  <!-- ===== HEATMAP ===== -->
+  <section class="section" id="sec-heatmap">
+    <div class="section-header"><h2>Calendar Heatmap</h2><p>GitHub-style contribution calendar</p></div>
+    <div class="glass-card">
+      <div class="heatmap-controls">
+        <button class="btn-secondary" onclick="changeHeatmapYear(-1)">◀ Prev</button>
+        <span id="heatmapYear" class="heatmap-year-label">2025</span>
+        <button class="btn-secondary" onclick="changeHeatmapYear(1)">Next ▶</button>
+      </div>
+      <div id="heatmapContainer"></div>
+      <div class="heatmap-legend">
+        <span>Less</span>
+        <div class="legend-box l0"></div><div class="legend-box l1"></div>
+        <div class="legend-box l2"></div><div class="legend-box l3"></div>
+        <div class="legend-box l4"></div>
+        <span>More</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ACHIEVEMENTS ===== -->
+  <section class="section" id="sec-achievements">
+    <div class="section-header"><h2>Achievements</h2><p>Badges earned on your DSA journey</p></div>
+    <div class="achievements-grid" id="achievementsGrid"></div>
+  </section>
+
+  <!-- ===== NOTES ===== -->
+  <section class="section" id="sec-notes">
+    <div class="section-header"><h2>Notes Manager</h2><p>Your personal DSA notes</p></div>
+    <div class="notes-layout">
+      <div class="notes-sidebar-panel glass-card">
+        <button class="btn-primary full-btn" onclick="newNote()">➕ New Note</button>
+        <input type="text" id="noteSearch" placeholder="Search notes…" oninput="renderNotesList()" />
+        <select id="noteFilterCat" onchange="renderNotesList()">
+          <option value="">All Categories</option>
+          <option>Arrays</option><option>Strings</option><option>Trees</option>
+          <option>Graphs</option><option>DP</option><option>Interview Notes</option>
+        </select>
+        <div id="notesList"></div>
+      </div>
+      <div class="notes-editor glass-card" id="notesEditor">
+        <div class="note-editor-header">
+          <input type="text" id="noteTitle" placeholder="Note Title…" class="note-title-input" />
+          <select id="noteCat">
+            <option>Arrays</option><option>Strings</option><option>Trees</option>
+            <option>Graphs</option><option>DP</option><option>Interview Notes</option>
+          </select>
+          <div class="note-actions">
+            <button class="btn-primary" onclick="saveNote()">💾 Save</button>
+            <button class="btn-danger" onclick="deleteNote()">🗑️ Delete</button>
+          </div>
+        </div>
+        <textarea id="noteContent" placeholder="Write your notes here… Supports plain text and markdown-style formatting."></textarea>
+        <input type="hidden" id="noteEditId" />
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== DSA SHEETS ===== -->
+  <section class="section" id="sec-sheets">
+    <div class="section-header"><h2>DSA Sheets</h2><p>Track popular DSA problem sheets</p></div>
+    <div class="sheets-tabs">
+      <button class="sheet-tab active" onclick="switchSheet('striver',this)">Striver A2Z</button>
+      <button class="sheet-tab" onclick="switchSheet('blind75',this)">Blind 75</button>
+      <button class="sheet-tab" onclick="switchSheet('neetcode',this)">NeetCode 150</button>
+      <button class="sheet-tab" onclick="switchSheet('babbar',this)">Love Babbar</button>
+    </div>
+    <div id="sheetContent"></div>
+  </section>
+
+  <!-- ===== INTERVIEW ===== -->
+  <section class="section" id="sec-interview">
+    <div class="section-header"><h2>Interview Tracker</h2><p>Track your interview applications</p></div>
+    <div class="glass-card form-card">
+      <h3 id="intFormTitle">➕ Add Interview</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Company Name</label>
+          <input type="text" id="intCompany" placeholder="Google, Amazon…" />
+        </div>
+        <div class="form-group">
+          <label>Interview Date</label>
+          <input type="date" id="intDate" />
+        </div>
+        <div class="form-group">
+          <label>Round Type</label>
+          <select id="intRound">
+            <option>OA</option><option>Technical</option><option>HR</option><option>Managerial</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Result</label>
+          <select id="intResult">
+            <option value="Pending">Pending</option>
+            <option value="Selected">Selected</option>
+            <option value="Rejected">Rejected</option>
+            <option value="On Hold">On Hold</option>
+          </select>
+        </div>
+        <div class="form-group full-width">
+          <label>Notes</label>
+          <textarea id="intNotes" placeholder="Interview experience, topics asked…"></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-primary" onclick="saveInterview()">Save Interview</button>
+        <button class="btn-secondary" onclick="clearIntForm()">Clear</button>
+      </div>
+      <input type="hidden" id="intEditId" />
+    </div>
+    <div class="glass-card" id="interviewTableWrap"></div>
+  </section>
+
+  <!-- ===== SETTINGS ===== -->
+  <section class="section" id="sec-settings">
+    <div class="section-header"><h2>Settings</h2><p>Customize your experience</p></div>
+    <div class="settings-grid">
+      <div class="glass-card setting-card">
+        <h3>🎨 Appearance</h3>
+        <div class="setting-row">
+          <span>Dark Mode</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="settingDark" checked onchange="toggleTheme(this.checked)" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="setting-row">
+          <span>Accent Color</span>
+          <div class="color-options" id="colorOptions">
+            <div class="color-dot" style="background:#00d4ff" onclick="setAccent('#00d4ff','#0099bb')" title="Cyan"></div>
+            <div class="color-dot" style="background:#7c3aed" onclick="setAccent('#7c3aed','#5b21b6')" title="Purple"></div>
+            <div class="color-dot" style="background:#10b981" onclick="setAccent('#10b981','#059669')" title="Green"></div>
+            <div class="color-dot" style="background:#f59e0b" onclick="setAccent('#f59e0b','#d97706')" title="Amber"></div>
+            <div class="color-dot" style="background:#ef4444" onclick="setAccent('#ef4444','#dc2626')" title="Red"></div>
+            <div class="color-dot" style="background:#ec4899" onclick="setAccent('#ec4899','#db2777')" title="Pink"></div>
+          </div>
+        </div>
+      </div>
+      <div class="glass-card setting-card">
+        <h3>💾 Data Management</h3>
+        <div class="setting-row">
+          <span>Export All Data (JSON)</span>
+          <button class="btn-primary" onclick="exportJSON()">Export</button>
+        </div>
+        <div class="setting-row">
+          <span>Import/Restore Data</span>
+          <button class="btn-secondary" onclick="document.getElementById('importFile').click()">Import</button>
+        </div>
+        <div class="setting-row">
+          <span>Export Problems (CSV)</span>
+          <button class="btn-secondary" onclick="exportCSV()">Export CSV</button>
+        </div>
+        <div class="setting-row danger">
+          <span>Reset All Data</span>
+          <button class="btn-danger" onclick="resetAllData()">⚠️ Reset</button>
+        </div>
+      </div>
+      <div class="glass-card setting-card">
+        <h3>📊 Statistics</h3>
+        <div id="settingsStats"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Topic Edit Modal -->
+<div class="modal-overlay" id="topicModal">
+  <div class="modal glass-card">
+    <h3>✏️ Edit Topic Progress</h3>
+    <div class="form-group">
+      <label>Topic: <span id="modalTopicName"></span></label>
+    </div>
+    <div class="form-group">
+      <label>Total Questions</label>
+      <input type="number" id="modalTotal" min="1" />
+    </div>
+    <div class="form-group">
+      <label>Solved Questions</label>
+      <input type="number" id="modalSolved" min="0" />
+    </div>
+    <div class="form-actions">
+      <button class="btn-primary" onclick="saveTopicEdit()">Save</button>
+      <button class="btn-secondary" onclick="closeModal('topicModal')">Cancel</button>
+      <button class="btn-danger" onclick="resetTopic()">Reset</button>
+    </div>
+    <input type="hidden" id="modalTopicIndex" />
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal glass-card">
+    <h3>⚠️ Confirm Action</h3>
+    <p id="confirmMsg">Are you sure?</p>
+    <div class="form-actions">
+      <button class="btn-danger" id="confirmYes">Yes, Proceed</button>
+      <button class="btn-secondary" onclick="closeModal('confirmModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
